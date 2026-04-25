@@ -188,3 +188,69 @@ Create a zip with source + notebook + artifacts:
 ```powershell
 py scripts/create_submission_bundle.py --output artifacts/submission_bundle.zip
 ```
+
+## Setup On Another Computer
+
+### 1) Clone repository
+
+```bash
+git clone https://github.com/Prithviiraj-7/DisasterReliefLogisticsCoordinator.git
+cd DisasterReliefLogisticsCoordinator
+```
+
+### 2) Create and activate a virtual environment
+
+Windows (PowerShell):
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS/Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### 3) Install dependencies
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 4) Run the app locally
+
+```bash
+py -m uvicorn server.app:app --host 127.0.0.1 --port 7860
+```
+
+Open in browser:
+
+```text
+http://127.0.0.1:7860
+```
+
+### 5) Optional smoke test
+
+Windows:
+
+```powershell
+.\run_local.ps1 -SkipInstall
+```
+
+### 6) Optional training + evidence generation
+
+```powershell
+py scripts/train_trl_disaster.py --updates 3 --collect-episodes 2 --eval-episodes 2 --max-episode-steps 5 --sft-steps 3 --output-dir artifacts/training_run
+py scripts/make_evidence_report.py --run-dir artifacts/training_run
+```
+
+### Common issues
+
+- If `python` is not found on Windows, use `py` instead.
+- If PowerShell blocks script execution, run:
+  - `Set-ExecutionPolicy -Scope Process Bypass`
+- If port `7860` is busy, run on another port (example: `7861`).
