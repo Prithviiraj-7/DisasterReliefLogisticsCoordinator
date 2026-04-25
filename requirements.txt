@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+openenv-core
+requests
+openai
+torch
+transformers
+trl
+accelerate
+matplotlib

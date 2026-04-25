@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Disaster Relief Command Center</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --panel: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --line: #dbe2ea;
+      --primary: #2563eb;
+      --good: #16a34a;
+      --warn: #d97706;
+      --bad: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #eaf2ff 0%, var(--bg) 40%, #f8fafc 100%);
+    }
+    .wrap { max-width: 1200px; margin: 18px auto; padding: 0 14px; }
+    .header {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+    h1 { margin: 0; font-size: 1.25rem; }
+    .sub { margin-top: 4px; color: var(--muted); font-size: 0.92rem; }
+    .toolbar {
+      display: grid;
+      grid-template-columns: 220px repeat(7, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    button, select, input {
+      padding: 9px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+    }
+    button { cursor: pointer; }
+    button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    button:hover { filter: brightness(0.98); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .layout {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+    }
+    .title { font-weight: 700; margin-bottom: 8px; }
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .stat { border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: #f8fafc; }
+    .k { color: var(--muted); font-size: 0.78rem; }
+    .v { margin-top: 2px; font-weight: 700; font-size: 1rem; }
+    .status-row {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .hint, .note {
+      border-radius: 8px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .hint strong { color: #1e3a8a; }
+    .note.warn { background: #fff7ed; border-color: #fed7aa; color: #9a3412; }
+    .note.good { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .zones {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .zone {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: #fff;
+    }
+    .sev {
+      display: inline-block;
+      min-width: 56px;
+      text-align: center;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      padding: 2px 7px;
+      border: 1px solid var(--line);
+    }
+    .sev.high { color: var(--bad); border-color: #fecaca; background: #fff1f2; }
+    .sev.mid { color: var(--warn); border-color: #fde68a; background: #fffbeb; }
+    .sev.low { color: var(--good); border-color: #86efac; background: #f0fdf4; }
+    .road.open { color: var(--good); font-weight: 600; }
+    .road.blocked { color: var(--bad); font-weight: 600; }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: Consolas, monospace;
+      font-size: 0.82rem;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      max-height: 220px;
+      overflow: auto;
+    }
+    .small { font-size: 0.84rem; color: var(--muted); }
+    .spark-wrap {
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+      padding: 6px;
+    }
+    #scoreSparkline {
+      width: 100%;
+      height: 48px;
+      display: block;
+    }
+    .runbar {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    .row { display: flex; gap: 8px; margin-top: 8px; }
+    .row input { flex: 1; }
+    details { margin-top: 8px; }
+    @media (max-width: 1180px) {
+      .toolbar { grid-template-columns: 1fr 1fr; }
+      .layout { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 860px) {
+      .stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <h1>Disaster Relief Command Center</h1>
+      <div class="sub">Simple flow: Reset -> Auto Step (or Auto Run) -> monitor zones/resources.</div>
+      <div class="toolbar">
+        <select id="taskId">
+          <option value="task_easy_local">Easy - Local</option>
+          <option value="task_medium_city">Medium - City</option>
+          <option value="task_hard_region" selected>Hard - Region</option>
+        </select>
+        <button class="primary" id="btnReset">Reset</button>
+        <button id="btnAutoStep">Auto Step</button>
+        <button id="btnAutoRun">Auto Run x10</button>
+        <button id="btnStatus">Get Status</button>
+        <button id="btnRoutes">Check Routes</button>
+        <button id="btnWait">Wait</button>
+        <button id="btnExport">Export Snapshot</button>
+      </div>
+      <div class="runbar" id="runBar">Ready. Press Reset to begin.</div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="panel">
+          <div class="title">Simulation Status</div>
+          <div class="stats">
+            <div class="stat"><div class="k">Task</div><div class="v" id="vTask">-</div></div>
+            <div class="stat"><div class="k">Tick</div><div class="v" id="vTick">-</div></div>
+            <div class="stat"><div class="k">Score</div><div class="v" id="vScore">-</div></div>
+            <div class="stat"><div class="k">Reward</div><div class="v" id="vReward">-</div></div>
+            <div class="stat"><div class="k">Done</div><div class="v" id="vDone">-</div></div>
+          </div>
+          <div class="spark-wrap">
+            <canvas id="scoreSparkline" width="780" height="48"></canvas>
+          </div>
+          <div class="status-row">
+            <div class="hint" id="nextStep"><strong>Next step:</strong> Press Reset.</div>
+            <div class="note good" id="resourceNote">Resources look stable.</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="title">Top Critical Zones</div>
+          <div class="small">High severity + open roads are best immediate targets.</div>
+          <div class="zones" id="zonesView"></div>
+        </div>
+
+        <div class="panel">
+          <div class="title">Manual Command (Optional)</div>
+          <div class="small">Examples: <code>deploy food 2 to zone_1</code>, <code>check_routes</code></div>
+          <div class="row">
+            <input id="customCmd" placeholder="Type command..." />
+            <button id="btnSend">Send</button>
+            <button id="btnStopRun">Stop Auto</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="title">Depot</div>
+          <pre id="depotView">-</pre>
+        </div>
+
+        <div class="panel">
+          <div class="title">Action History</div>
+          <pre id="historyView">No actions yet.</pre>
+        </div>
+
+        <div class="panel">
+          <div class="title">Recent Logs</div>
+          <pre id="logsView">-</pre>
+        </div>
+
+        <div class="panel">
+          <div class="title">Legend</div>
+          <div class="small">
+            <div>- <span class="sev high">HIGH</span> urgent zone</div>
+            <div>- <span class="sev mid">MED</span> medium priority</div>
+            <div>- <span class="sev low">LOW</span> lower urgency</div>
+            <div>- Road <span class="road open">open</span> means deliveries can arrive</div>
+            <div>- Road <span class="road blocked">blocked</span> means reroute/check routes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lastObs = null;
+    let isAutoRunning = false;
+    let history = [];
+    let stopRequested = false;
+    let scoreSeries = [];
+
+    function sevLabel(v) {
+      if (v >= 0.66) return "high";
+      if (v >= 0.33) return "mid";
+      return "low";
+    }
+
+    function addHistory(command, reward) {
+      history.unshift(`${new Date().toLocaleTimeString()} | ${command} | reward=${reward ?? "-"}`);
+      history = history.slice(0, 40);
+      document.getElementById("historyView").textContent = history.join("\n");
+      document.getElementById("runBar").textContent = `Last action: ${command} | reward=${reward ?? "-"} | entries=${history.length}`;
+    }
+
+    function drawSparkline() {
+      const canvas = document.getElementById("scoreSparkline");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = "#93c5fd";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, h - 1);
+      ctx.lineTo(w, h - 1);
+      ctx.stroke();
+
+      if (scoreSeries.length < 2) return;
+      const maxN = 80;
+      const s = scoreSeries.slice(-maxN);
+      ctx.beginPath();
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < s.length; i++) {
+        const x = (i / (s.length - 1)) * (w - 1);
+        const y = h - 1 - (Math.max(0, Math.min(1, s[i])) * (h - 4)) - 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function setButtonsDisabled(disabled) {
+      const ids = ["btnReset", "btnAutoStep", "btnAutoRun", "btnStatus", "btnRoutes", "btnWait", "btnExport", "btnSend"];
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el) el.disabled = disabled;
+      }
+      const stop = document.getElementById("btnStopRun");
+      if (stop) stop.disabled = !disabled;
+    }
+
+    function chooseTopOpenZone(obs) {
+      const entries = Object.entries(obs.zones)
+        .filter((entry) => entry[1].road_open)
+        .sort((a, b) => b[1].severity - a[1].severity);
+      return entries.length ? entries[0][0] : "zone_1";
+    }
+
+    function chooseSmartAction(obs) {
+      const zones = Object.entries(obs.zones).sort((a, b) => b[1].severity - a[1].severity);
+      const blocked = zones.filter((z) => !z[1].road_open).length;
+      if (blocked > Math.floor(zones.length * 0.35)) return "check_routes";
+      for (const [zoneId, z] of zones) {
+        if (!z.road_open) continue;
+        if (obs.depot.food > 0 && z.delivered.food < z.requirements.food) return `deploy food 2 to ${zoneId}`;
+        if (obs.depot.medical_teams > 0 && z.delivered.medical_teams < z.requirements.medical_teams) return `deploy medical_teams 1 to ${zoneId}`;
+        if (obs.depot.rescue_units > 0 && z.delivered.rescue_units < z.requirements.rescue_units) return `deploy rescue_units 1 to ${zoneId}`;
+        if (obs.depot.trucks > 0 && z.delivered.trucks < z.requirements.trucks) return `deploy trucks 1 to ${zoneId}`;
+      }
+      return "wait";
+    }
+
+    function updateNextStep(obs, done) {
+      const nextEl = document.getElementById("nextStep");
+      if (!obs) {
+        nextEl.innerHTML = "<strong>Next step:</strong> Press Reset.";
+        return;
+      }
+      if (done) {
+        nextEl.innerHTML = "<strong>Next step:</strong> Simulation complete. Press Reset for a new run.";
+        return;
+      }
+      const z = chooseTopOpenZone(obs);
+      nextEl.innerHTML = `<strong>Next step:</strong> deploy food 2 to ${z}, then press Wait.`;
+    }
+
+    function updateResourceNote(obs, done) {
+      const el = document.getElementById("resourceNote");
+      if (done) {
+        el.className = "note good";
+        el.textContent = "Episode finished. Check score and reset to retry.";
+        return;
+      }
+      const low = Object.entries(obs.depot).filter((entry) => entry[1] <= 2).map((entry) => entry[0]);
+      if (low.length) {
+        el.className = "note warn";
+        el.textContent = `Low resources: ${low.join(", ")}. Prioritize only top urgent zones.`;
+      } else {
+        el.className = "note good";
+        el.textContent = "Resources look stable. Keep serving high-severity open-road zones.";
+      }
+    }
+
+    function render(obs, reward, done) {
+      lastObs = obs;
+      document.getElementById("vTask").textContent = obs.task_id;
+      document.getElementById("vTick").textContent = `${obs.tick}/${obs.max_steps}`;
+      document.getElementById("vScore").textContent = obs.task_score ?? "-";
+      document.getElementById("vReward").textContent = reward ?? "-";
+      document.getElementById("vDone").textContent = done;
+      document.getElementById("depotView").textContent = JSON.stringify(obs.depot, null, 2);
+      document.getElementById("logsView").textContent = (obs.recent_logs || []).join("\n") || "-";
+      scoreSeries.push(Number(obs.task_score ?? 0));
+      drawSparkline();
+
+      const zonesWrap = document.getElementById("zonesView");
+      zonesWrap.innerHTML = "";
+      const topZones = Object.entries(obs.zones)
+        .sort((a, b) => b[1].severity - a[1].severity)
+        .slice(0, 8);
+
+      for (const [zoneId, z] of topZones) {
+        const sev = sevLabel(z.severity);
+        const card = document.createElement("div");
+        card.className = "zone";
+        card.innerHTML = `
+          <div><strong>${zoneId}</strong> <span class="sev ${sev}">${sev.toUpperCase()}</span></div>
+          <div>Severity: ${z.severity}</div>
+          <div>Progress: ${z.progress}</div>
+          <div class="road ${z.road_open ? "open" : "blocked"}">Road: ${z.road_open ? "open" : "blocked"}</div>
+        `;
+        zonesWrap.appendChild(card);
+      }
+
+      updateNextStep(obs, done);
+      updateResourceNote(obs, done);
+    }
+
+    async function apiReset() {
+      const taskId = document.getElementById("taskId").value;
+      const res = await fetch("/reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId })
+      });
+      const data = await res.json();
+      history = [];
+      scoreSeries = [];
+      document.getElementById("historyView").textContent = "Simulation reset.";
+      render(data.observation, null, data.done);
+      return data;
+    }
+
+    async function apiStep(command) {
+      const res = await fetch("/step", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: { command } })
+      });
+      const data = await res.json();
+      render(data.observation, data.reward, data.done);
+      addHistory(command, data.reward);
+      return data;
+    }
+
+    async function autoRun(count) {
+      if (!lastObs || isAutoRunning) return;
+      isAutoRunning = true;
+      stopRequested = false;
+      setButtonsDisabled(true);
+      document.getElementById("runBar").textContent = `Auto running up to ${count} cycles...`;
+      for (let i = 0; i < count; i++) {
+        if (stopRequested) break;
+        if (!lastObs || Number(lastObs.tick) >= Number(lastObs.max_steps)) break;
+        const cmd = chooseSmartAction(lastObs);
+        const step = await apiStep(cmd);
+        if (step.done) break;
+        await apiStep("wait");
+      }
+      document.getElementById("runBar").textContent = stopRequested ? "Auto run stopped." : "Auto run complete.";
+      setButtonsDisabled(false);
+      isAutoRunning = false;
+      stopRequested = false;
+    }
+
+    function exportSnapshot() {
+      if (!lastObs) return;
+      const payload = {
+        exported_at: new Date().toISOString(),
+        observation: lastObs,
+        history
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `disaster_snapshot_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.getElementById("btnReset").onclick = apiReset;
+    document.getElementById("btnAutoStep").onclick = () => {
+      if (!lastObs) return;
+      apiStep(chooseSmartAction(lastObs));
+    };
+    document.getElementById("btnAutoRun").onclick = () => autoRun(10);
+    document.getElementById("btnStatus").onclick = () => apiStep("get_status");
+    document.getElementById("btnRoutes").onclick = () => apiStep("check_routes");
+    document.getElementById("btnWait").onclick = () => apiStep("wait");
+    document.getElementById("btnExport").onclick = exportSnapshot;
+    document.getElementById("btnSend").onclick = () => {
+      const cmd = document.getElementById("customCmd").value.trim();
+      if (cmd) apiStep(cmd);
+    };
+    document.getElementById("btnStopRun").onclick = () => {
+      stopRequested = true;
+      document.getElementById("runBar").textContent = "Stopping auto run...";
+    };
+    document.getElementById("btnStopRun").disabled = true;
+
+    apiReset();
+  </script>
+</body>
+</html>
