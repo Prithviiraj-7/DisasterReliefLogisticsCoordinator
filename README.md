@@ -91,6 +91,19 @@ Run:
 docker run --rm -p 7860:7860 disaster-relief-logistics
 ```
 
+The image listens on `0.0.0.0` and uses the `PORT` environment variable (default `7860`), matching [Hugging Face Spaces Docker](https://huggingface.co/docs/hub/spaces-sdks-docker) requirements.
+
+## Hugging Face Space
+
+1. Create a **new Space** at [New Space](https://huggingface.co/new-space): choose a name, **SDK** = **Docker**, then **Create Space**.
+2. **Push this repository** to the Space’s Git (each Space is its own `https://huggingface.co/spaces/<user>/<space>` repo). From a clone of this project:
+   - `git remote add hf https://huggingface.co/spaces/<user>/<space>`
+   - `git push hf <branch>:main` (or push your default branch; match what the Space uses).
+3. The **build** runs from the **repository root** `Dockerfile` and `requirements.txt`. The container listens on **`PORT`** (default `7860`), which matches Hugging Face Spaces.
+4. When the build is green, open the Space URL: **Command Center** at `/`, **`GET /health`** returns `{"ok": true}`. In **Settings**, keep **app port** aligned with the process port if you change `PORT` (default `7860`).
+
+**Secrets:** The simulation UI does not need API keys. If you add scripts that call OpenAI, store keys under **Settings → Repository secrets** (e.g. `OPENAI_API_KEY`) and use them in your process or CI only as you design.
+
 ## Quick API smoke test
 
 PowerShell examples:

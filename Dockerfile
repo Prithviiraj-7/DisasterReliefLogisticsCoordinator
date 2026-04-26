@@ -11,6 +11,8 @@ RUN pip install --upgrade pip && pip install -r /app/requirements.txt
 
 COPY . /app
 
+# Default 7860 matches local/HF; Spaces injects PORT at runtime
+ENV PORT=7860
 EXPOSE 7860
 
-CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn server.app:app --host 0.0.0.0 --port ${PORT:-7860}"]

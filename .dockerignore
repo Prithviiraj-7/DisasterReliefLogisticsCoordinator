@@ -10,3 +10,7 @@ __pycache__/
 venv/
 node_modules/
 *.log
+artifacts/
+data/
+client/__pycache__/
+server/__pycache__/
