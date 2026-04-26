@@ -1,3 +1,12 @@
+---
+title: Disaster Relief Coordinator
+emoji: 🧭
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+---
+
 # Disaster Relief Logistics Coordinator
 
 OpenEnv-style disaster response simulation with a FastAPI backend and command-string action interface for LLM agents.
